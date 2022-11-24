@@ -32,6 +32,7 @@ const GameBoard = () => {
     const [currentScore, setCurrentScore] = useState<number>(0);
     const [board, setBoard] = useState<Array<Array<Tile>>>(undefined);
     const [tray, setTray] = useState<Array<Tile>>(undefined);
+    const [draggable, setDraggable] = useState<Array<boolean>>([]);
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
     const [intervalId, setIntervalId] = useState<NodeJS.Timer | undefined>(undefined);
     const [gameWon, setGameWon] = useState<boolean>(false);
@@ -59,6 +60,12 @@ const GameBoard = () => {
         })) {
             handleLoss();
         }
+        const newDraggable = tray.slice(0, 3).map(tile => {
+            return board.every((row, rowIndex) => row.every((_, columnIndex) => {
+                return !canTileBePlaced(tile, rowIndex, columnIndex);
+            }));
+        });
+        setDraggable(newDraggable.map(bool => !bool));
     }, [tray]);
 
     const canTileBePlaced = (tile: Tile, i: number, j: number) => {
@@ -102,6 +109,7 @@ const GameBoard = () => {
         setCurrentScore(0);
         setGameWon(false);
         setGameLost(false);
+        setDraggable([true, true, true]);
 
         // reset board
         const newBoard = [];
@@ -210,7 +218,8 @@ const GameBoard = () => {
         <View style={{ flexDirection: "row", justifyContent: "center", height: "10%" }}>
             {tray.slice(0, 3).map((tile, i) =>
                 <DraxView
-                    style={[styles.centeredContent, styles.draggableBox, { backgroundColor: colorMap[tile.color] }]}
+                    draggable={draggable[i]}
+                    style={[styles.centeredContent, styles.draggableBox, { backgroundColor: colorMap[tile.color], opacity: draggable[i] ? 1 : 0.5 }]}
                     draggingStyle={styles.dragging}
                     dragReleasedStyle={styles.dragging}
                     hoverDraggingStyle={styles.hoverDragging}
